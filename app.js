@@ -27,14 +27,14 @@ app.use(
     `), // Points to a valid graphql Schema
 		rootValue : {
 			events      : () => {
-				return [ 'Sometehing 1', 'Somethign 2', 'Something 3' ];
+				return [ 'Something 1', 'Something 2', 'Something 3' ];
 			},
 			createEvent : (args) => {
 				const eventName = args.name; // name because that ishow we neamed it in the    `RootMutation`
 				return eventName;
-			},
-			graphiql    : true // we get nice user interface
-		}
+			}
+		},
+		graphiql  : true // we get nice user interface
 	})
 );
 
