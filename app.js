@@ -75,18 +75,32 @@ app.use(
 					title: args.eventInput.title,
 					description: args.eventInput.description,
 					price: +args.eventInput.price, //This `+` converts to a number
-					date: new Date(args.eventInput.date) // Parses the incoming data string into a javascript object to send it to MongoDB
+					date: new Date(args.eventInput.date), // Parses the incoming data string into a javascript object to send it to MongoDB
+					creator: '5e2d19bec42af695ad69e747'
 				});
+				let createdEvent;
 				// Return our promise that saves to the database online
 				return event
 					.save()
 					.then(result => {
+						createdEvent = { ...result._doc, _id: result._doc._id.toString() }; // storre the created event docuement without the metadate
+						return User.findById('5e2d19bec42af695ad69e747');
 						console.log(result);
 						// We are returning a new javascript object
 						// based on the gathering all the properties in the result
 						// using the spread operator allowing us gather all the properties.
 						// With out the use of `._doc` we gut unecssary metadata. `._doc` is provided by mongoose.
 						return { ...result._doc, _id: result._doc._id.toString() };
+					})
+					.then(user => {
+						if (!user) {
+							throw new Error('User not found');
+						}
+						user.createdEvents.push();
+						return user.save(); //Updates existing user
+					})
+					.then(reult => {
+						return createdEvent;
 					})
 					.catch(err => {
 						console.log(err);
