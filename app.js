@@ -2,10 +2,10 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const graphQlhttp = require('express-graphql');
 const { buildSchema } = require('graphql');
+const mongoose = require('mongoose');
+const Event = require('./models/event');
 
 const app = express();
-
-const events = [];
 
 app.use(bodyParser.json());
 
@@ -47,20 +47,49 @@ app.use(
 				return events;
 			},
 			createEvent : (args) => {
-				const event = {
-					_id         : Math.random().toString(),
+				// const event = {
+				// 	_id         : Math.random().toString(),
+				// 	title       : args.eventInput.title,
+				// 	description : args.eventInput.description,
+				// 	price       : +args.eventInput.price, //This `+` converts to a number
+				// 	date        : args.eventInput.date
+				// };
+				const event = new Event({
 					title       : args.eventInput.title,
 					description : args.eventInput.description,
 					price       : +args.eventInput.price, //This `+` converts to a number
-					date        : args.eventInput.date
-				};
-
-				events.push(event);
-				return event;
+					date        : new Date(args.eventInput.date) // Parses the incoming data string into a javascript object to send it to MongoDB
+				});
+				// Return our promise
+				return event
+					.save()
+					.then((result) => {
+						console.log(result);
+						// We are returning a new javascript object
+						// based on the gathering all the properties in the result
+						// using the spread operator allowing us gather all the properties.
+						// With out the use of `._doc` we gut unecssary metadata. `._doc` is provided by mongoose.
+						return { ...result._doc };
+					})
+					.catch((err) => {
+						console.log(err);
+						throw err; // Returns us the error.
+					}); // Writes our data as defined above into the database
 			}
 		},
 		graphiql  : true // we get nice user interface
 	})
 );
-
-app.listen(8081);
+//${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}
+mongoose
+	.connect(`mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0-buyuh.mongodb.net/${process.env.MONGO_DB}?retryWrites=true&w=majority`, {
+		useNewUrlParser    : true,
+		useUnifiedTopology : true
+	})
+	.then(() => {
+		console.log('Database connected');
+		app.listen(8081);
+	})
+	.catch((err) => {
+		console.log(err);
+	});
