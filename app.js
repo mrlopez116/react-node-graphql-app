@@ -44,23 +44,25 @@ app.use(
     `), // Points to a valid graphql Schema
 		rootValue : {
 			events      : () => {
-				return events;
+				return Event.find()
+					.then((events) => {
+						return events.map((event) => {
+							// We need to convert the id to a normal string understood by GraphQl
+							return { ...event._doc, _id: event.id }; // returns a new object with the event infomration without the metadata
+						});
+					})
+					.catch((err) => {
+						throw err;
+					});
 			},
 			createEvent : (args) => {
-				// const event = {
-				// 	_id         : Math.random().toString(),
-				// 	title       : args.eventInput.title,
-				// 	description : args.eventInput.description,
-				// 	price       : +args.eventInput.price, //This `+` converts to a number
-				// 	date        : args.eventInput.date
-				// };
 				const event = new Event({
 					title       : args.eventInput.title,
 					description : args.eventInput.description,
 					price       : +args.eventInput.price, //This `+` converts to a number
 					date        : new Date(args.eventInput.date) // Parses the incoming data string into a javascript object to send it to MongoDB
 				});
-				// Return our promise
+				// Return our promise that saves to the database online
 				return event
 					.save()
 					.then((result) => {
@@ -69,7 +71,7 @@ app.use(
 						// based on the gathering all the properties in the result
 						// using the spread operator allowing us gather all the properties.
 						// With out the use of `._doc` we gut unecssary metadata. `._doc` is provided by mongoose.
-						return { ...result._doc };
+						return { ...result._doc, _id: result._doc._id.toString() };
 					})
 					.catch((err) => {
 						console.log(err);
