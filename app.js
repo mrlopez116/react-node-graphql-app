@@ -22,13 +22,15 @@ app.use(
             title: String!
             description: String!
             price: Float!
-            date: String!
+			date: String!
+			creator: User!
 		}
 		
 		type User {
 			_id: ID!
 			email: String!
 			password: String
+			createdEvents: [Event!]
 		}
 
         input EventInput {
@@ -85,12 +87,12 @@ app.use(
 					.then(result => {
 						createdEvent = { ...result._doc, _id: result._doc._id.toString() }; // storre the created event docuement without the metadate
 						return User.findById('5e2d19bec42af695ad69e747');
-						console.log(result);
+						//console.log(result);
 						// We are returning a new javascript object
 						// based on the gathering all the properties in the result
 						// using the spread operator allowing us gather all the properties.
 						// With out the use of `._doc` we gut unecssary metadata. `._doc` is provided by mongoose.
-						return { ...result._doc, _id: result._doc._id.toString() };
+						//return { ...result._doc, _id: result._doc._id.toString() };
 					})
 					.then(user => {
 						if (!user) {
